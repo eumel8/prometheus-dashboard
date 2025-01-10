@@ -11,6 +11,6 @@ WORKDIR /appuser
 COPY --from=build-env /go/src/github.com/eumel8/prometheus-dashboard .
 COPY --from=build-env /etc/passwd /etc/passwd
 USER appuser
-ENV PROMETHEUS_URL=http://127.0.0.1:9090/
-ENV ALERTMANAGER_URL=http://127.0.0.1:9093/
+ENV PROMETHEUS_URL=http://127.0.0.1:9090/api/v1/query
+ENV ALERTMANAGER_URL=http://127.0.0.1:9093/api/v2/alerts
 ENTRYPOINT ["/appuser/prometheus-dashboard"]
