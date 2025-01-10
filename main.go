@@ -44,6 +44,7 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
         url := fmt.Sprintf("%s?query=%s", prometheusURL, promQuery)
 
         resp, err := http.Get(url)
+	log.Info("Prometheus query:",url)
 	log.Info("Prometheus response:",resp)
         if err != nil {
                 return PrometheusResponse{}, err
