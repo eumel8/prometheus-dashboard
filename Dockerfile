@@ -3,6 +3,7 @@ FROM golang:1.23 AS build-env
 RUN mkdir -p /go/src/github.com/eumel8/prometheus-dashboard
 WORKDIR /go/src/github.com/eumel8/prometheus-dashboard
 COPY  . .
+RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o prometheus-dashboard
 # release stage
 FROM alpine:latest
