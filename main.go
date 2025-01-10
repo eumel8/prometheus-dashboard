@@ -22,7 +22,7 @@ type PrometheusResponse struct {
                         Metric map[string]string `json:"metric"`
                         Value  []interface{}     `json:"value"`
                 } `json:"result"`
-                Analysis string `json:"analysis,omitempty"`
+                Analysis map[string]interface{} `json:"analysis,omitempty"`
         } `json:"data"`
 }
 
