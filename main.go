@@ -4,11 +4,14 @@ import (
         "encoding/json"
         "fmt"
         "io/ioutil"
-        "log"
         "net/http"
 	"os"
+        log "github.com/gookit/slog"
 )
 
+const (
+	logTemplate = "[{{datetime}}] [{{level}}] {{caller}} {{message}} \n"
+)
 
 // Prometheus response struct
 type PrometheusResponse struct {
@@ -41,6 +44,7 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
         url := fmt.Sprintf("%s?query=%s", prometheusURL, promQuery)
 
         resp, err := http.Get(url)
+	log.Info("Prometheus response:",resp)
         if err != nil {
                 return PrometheusResponse{}, err
         }
@@ -98,6 +102,7 @@ func queryAlertmanager() (map[string]int, error) {
 }
 
 func main() {
+	log.GetFormatter().(*log.TextFormatter).SetTemplate(logTemplate)
 
         http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
                 // Serve the HTML file
@@ -113,7 +118,7 @@ func main() {
 
                 prometheusResponse, err := queryPrometheus(query)
                 if err != nil {
-                        log.Println("Error querying Prometheus:", err)
+                        log.Errorf("Error querying Prometheus: %v", err)
                         http.Error(w, "Failed to fetch data from Prometheus", http.StatusInternalServerError)
                         return
                 }
@@ -125,7 +130,7 @@ func main() {
         http.HandleFunc("/api/alerts", func(w http.ResponseWriter, r *http.Request) {
                 alerts, err := queryAlertmanager()
                 if err != nil {
-                        log.Println("Error querying Alertmanager:", err)
+                        log.Errorf("Error querying Alertmanager: %v", err)
                         http.Error(w, "Failed to fetch data from Alertmanager", http.StatusInternalServerError)
                         return
                 }
@@ -134,6 +139,6 @@ func main() {
                 json.NewEncoder(w).Encode(alerts)
         })
 
-        log.Println("Server is running on http://0.0.0.0:8080")
+        log.Info("Server is running on http://0.0.0.0:8080")
         log.Fatal(http.ListenAndServe(":8080", nil))
 }
