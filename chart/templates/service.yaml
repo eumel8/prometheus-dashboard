@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "prometheus-dashboard.fullname" . }}
+  labels:
+    {{- include "prometheus-dashboard.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.monitorPort }}
+      targetPort: {{ .Values.service.targetPort }}
+  selector:
+    {{- include "prometheus-dashboard.selectorLabels" . | nindent 4 }}
