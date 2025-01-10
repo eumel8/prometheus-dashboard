@@ -50,5 +50,5 @@ tolerations: []
 affinity: {}
 
 # dashboard endpoint URLs
-alertmanagerURL: "http://127.0.0.1:9093"
-prometheusURL: "http://127.0.0.1:9090"
+prometheusURL: "http://127.0.0.1:9090/api/v1/query"
+alertmanagerURL: "http://127.0.0.1:9093/api/v2/alerts"
