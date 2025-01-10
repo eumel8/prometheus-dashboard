@@ -56,6 +56,7 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
                 return PrometheusResponse{}, err
         }
 
+	log.Info("Prometheus body:",body)
         var prometheusResponse PrometheusResponse
         err = json.Unmarshal(body, &prometheusResponse)
         if err != nil {
