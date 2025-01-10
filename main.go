@@ -19,8 +19,8 @@ type PrometheusResponse struct {
                         Metric map[string]string `json:"metric"`
                         Value  []interface{}     `json:"value"`
                 } `json:"result"`
+                Analysis string `json:"analysis"`
         } `json:"data"`
-        Analysis string `json:"analysis"`
 }
 
 // Alertmanager response struct
