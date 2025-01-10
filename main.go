@@ -6,12 +6,9 @@ import (
         "io/ioutil"
         "log"
         "net/http"
+	"os"
 )
 
-const (
-        prometheusURL  = "http://127.0.0.1:9090/api/v1/query"
-        alertmanagerURL = "http://127.0.0.1:9093/api/v2/alerts"
-)
 
 // Prometheus response struct
 type PrometheusResponse struct {
@@ -34,6 +31,12 @@ type AlertmanagerAlert struct {
 
 // Query Prometheus
 func queryPrometheus(promQuery string) (PrometheusResponse, error) {
+
+	prometheusURL  := "http://127.0.0.1:9090/api/v1/query"
+	if os.Getenv("PROMETHEUS_URL") != "" {
+	         prometheusURL = os.Getenv("PROMETHEUS_URL")
+	}
+
         url := fmt.Sprintf("%s?query=%s", prometheusURL, promQuery)
 
         resp, err := http.Get(url)
@@ -58,6 +61,12 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
 
 // Query Alertmanager
 func queryAlertmanager() (map[string]int, error) {
+
+	alertmanagerURL := "http://127.0.0.1:9093/api/v2/alerts"
+	if os.Getenv("ALERTMANAGER_URL") != "" {
+	         alertmanagerURL = os.Getenv("ALERTMANAGER_URL")
+	}
+
         resp, err := http.Get(alertmanagerURL)
         if err != nil {
                 return nil, err
@@ -88,6 +97,7 @@ func queryAlertmanager() (map[string]int, error) {
 }
 
 func main() {
+
         http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
                 // Serve the HTML file
                 http.ServeFile(w, r, "index.html")
