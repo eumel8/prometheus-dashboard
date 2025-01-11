@@ -52,3 +52,8 @@ affinity: {}
 # dashboard endpoint URLs
 prometheusURL: "http://127.0.0.1:9090/api/v1/query"
 alertmanagerURL: "http://127.0.0.1:9093/api/v2/alerts"
+
+# use existing configMap with own index.html template
+indexMap:
+  enabled: false
+  #name:  my-index-html
