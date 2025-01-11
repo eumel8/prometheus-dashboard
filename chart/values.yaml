@@ -16,6 +16,9 @@ podSecurityContext:
   fsGroup: 1000
   supplementalGroups:
   - 1000
+  runAsNonRoot: true
+  seccompProfile:
+    type: RuntimeDefault
 
 # minimal permissions for container
 securityContext:
@@ -24,9 +27,12 @@ securityContext:
   capabilities:
     drop:
     - ALL
+    - CAP_NET_RAW
   privileged: false
   runAsUser: 1000
   runAsGroup: 1000
+  seccompProfile:
+    type: RuntimeDefault
 
 # service for Webhook endpoint and Monitoring
 service:
