@@ -19,14 +19,27 @@ const (
 
 // Prometheus response struct
 type PrometheusResponse struct {
-	Status string `json:"status"`
-	Data   struct {
-		ResultType string `json:"resultType"`
-		Result     []struct {
-			Metric map[string]string `json:"metric"`
-			Value  []interface{}     `json:"value"`
-		} `json:"result"`
-	} `json:"data"`
+        Status string `json:"status"`
+        Data   struct {
+                ResultType string `json:"resultType"`
+                Result     []struct {
+                        Metric map[string]string `json:"metric"`
+                        Value  []interface{}     `json:"value"`
+                } `json:"result"`
+        } `json:"data"`
+}
+
+// Thanos response struct
+type ThanosResponse struct {
+        Status string `json:"status"`
+        Data   struct {
+                ResultType string `json:"resultType"`
+                Result     []struct {
+                        Metric map[string]string `json:"metric"`
+                        Value  []interface{}     `json:"value"`
+                } `json:"result"`
+                Analysis map[string]interface{} `json:"analysis,omitempty"`
+        } `json:"data"`
 }
 
 // Alertmanager response struct
