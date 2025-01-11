@@ -1,7 +1,9 @@
 name: Helm
 
-on:
-  push:
+on: 
+  push: 
+    paths: 
+    - 'chart/*'
 #    tags:
 #    - "*"
     

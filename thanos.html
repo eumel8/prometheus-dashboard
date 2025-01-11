@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prometheus Dashboard</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+    <style>
+        :root {
+            --bg-color: #ffffff;
+            --text-color: #000000;
+            --card-bg-color: #f8f9fa;
+            --card-header-bg: #007bff;
+            --card-header-text: #ffffff;
+            --table-bg-color: #ffffff;
+            --table-border-color: #dee2e6;
+            --list-bg-color: #ffffff;
+            --list-text-color: #000000;
+        }
+    
+        [data-theme="dark"] {
+            --bg-color: #121212;
+            --text-color: #e0e0e0;
+            --card-bg-color: #1e1e1e;
+            --card-header-bg: #444444;
+            --card-header-text: #ffcc00;
+            --table-bg-color: #1e1e1e;
+            --table-border-color: #444444;
+            --list-bg-color: #1e1e1e;
+            --list-text-color: #e0e0e0;
+        }
+    
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+    
+        .card {
+            background-color: var(--card-bg-color);
+        }
+    
+        .card-header {
+            background-color: var(--card-header-bg);
+            color: var(--card-header-text);
+        }
+    
+        table {
+            background-color: var(--table-bg-color) !important;
+            border-color: var(--table-border-color) !important;
+            color: var(--text-color) !important;
+        }
+    
+        th,
+        td {
+            border-color: var(--table-border-color) !important;
+        }
+    
+        thead {
+            background-color: var(--card-header-bg) !important;
+            color: var(--card-header-text) !important;
+        }
+    
+        .list-group {
+            background-color: var(--list-bg-color) !important;
+            color: var(--list-text-color) !important;
+        }
+    
+        .list-group-item {
+            background-color: var(--list-bg-color) !important;
+            color: var(--list-text-color) !important;
+            border-color: var(--table-border-color) !important;
+        }
+    </style>
+
+    <script>
+        // Function to toggle dark mode
+        function toggleDarkMode() {
+            const currentTheme = document.documentElement.getAttribute("data-theme");
+            const newTheme = currentTheme === "dark" ? "light" : "dark";
+            document.documentElement.setAttribute("data-theme", newTheme);
+            localStorage.setItem("theme", newTheme); // Save theme preference
+        }
+
+        // Auto-refresh every 60 seconds
+        setInterval(() => {
+            location.reload();
+        }, 60000);
+
+        // Load theme preference on page load
+        window.onload = function () {
+            const savedTheme = localStorage.getItem("theme") || "light";
+            document.documentElement.setAttribute("data-theme", savedTheme);
+            displayMetrics();
+        };
+    </script>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Prometheus Metrics Dashboard</h1>
+            <button class="btn btn-secondary" onclick="toggleDarkMode()">Toggle Dark Mode</button>
+        </div>
+        <div id="alerts"></div>
+        <div id="metrics"></div>
+    </div>
+
+    <script>
+        const backendApiUrl = "/api/query";
+        const alertsApiUrl = "/api/alerts";
+
+        async function fetchMetric(query) {
+            try {
+                const response = await fetch(backendApiUrl + "?query=" + encodeURIComponent(query));
+                const data = await response.json();
+                return data.data.result;
+            } catch (error) {
+                console.error("Error fetching metric:", error);
+            }
+        }
+
+        async function fetchAlerts() {
+            try {
+                const response = await fetch(alertsApiUrl);
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error("Error fetching alerts:", error);
+            }
+        }
+
+        async function displayMetrics() {
+            const metricsDiv = document.getElementById("metrics");
+            const alertsDiv = document.getElementById("alerts");
+
+            const alertData = await fetchAlerts();
+            let alertsContent = `
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Alerts by Severity</h3>
+                    </div>
+                    <div class="card-body">
+                        <ul class="list-group">
+                            ${Object.entries(alertData).map(([severity, count]) => `
+                                <li class="list-group-item">${severity}: ${count} alerts</li>
+                            `).join("")}
+                        </ul>
+                    </div>
+                </div>
+            `;
+
+            alertsDiv.innerHTML = alertsContent;
+
+            const queries = [ "count(capi_cluster_info)","count(kube_node_info)", "count(kube_pod_info)"];
+            const metricPromises = queries.map(query => fetchMetric(query));
+            const metricsData = await Promise.all(metricPromises);
+
+            let metricsContent = '';
+            queries.forEach((query, idx) => {
+                const metrics = metricsData[idx];
+                const metricValues = metrics?.map(m => ({
+                    values: m.value[1]
+                })) || [];
+
+                metricsContent += `
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h3>Metric: ${query}</h3>
+                        </div>
+                        <div class="card-body">
+                            <ul class="list-group">
+                                ${metricValues.length > 0
+                                    ? metricValues.map(v => `<li class="list-group-item">${v.values}</li>`).join("")
+                                    : "<li class='list-group-item'>No data available</li>"
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                `;
+            });
+
+            metricsDiv.innerHTML = metricsContent;
+
+        }
+    </script>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
