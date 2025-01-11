@@ -24,6 +24,9 @@ spec:
       containers:
         - args:
           - -logLevel={{ .Values.logLevel }}
+          {{- if .Values.thanos.enabled }}
+          - -thanos
+          {{- end }}
           name: {{ .Chart.Name }}
           env:
           - name: PROMETHEUS_URL

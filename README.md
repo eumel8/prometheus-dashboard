@@ -58,8 +58,14 @@ indexMap:
 
 ## Thanos
 
-You can also query a Thanos backend instead of Prometheus. Due the different data structure on the Thanos API, take a look at the thanos branch und use the image with tag `thanos`.
-Also the index.html page needs to adjust in the data structure. Try your best.
+You can also query a Thanos backend instead of Prometheus. Use the `-thanos` flag or the Helm chart option:
+
+```
+thanos:
+  enabled: true
+```
+
+Move also the thanos.html template to index.html to handle the different data struct.
 
 ## Credits
 
