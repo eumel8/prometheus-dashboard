@@ -154,6 +154,7 @@ func main() {
 			http.Error(w, "Failed to fetch data from Prometheus", http.StatusInternalServerError)
 			return
 		}
+		log.Debug("Prometheus handler response: %v", prometheusResponse)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(prometheusResponse)
@@ -166,6 +167,7 @@ func main() {
 			http.Error(w, "Failed to fetch data from Alertmanager", http.StatusInternalServerError)
 			return
 		}
+		log.Debug("Alertmanager handler response: %v", alerts)
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(alerts)
