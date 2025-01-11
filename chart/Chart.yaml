@@ -3,7 +3,7 @@ name: prometheus-dashboard
 description: A Helm chart for tiny Prometheus Dashboard Service
 type: application
 version: 1.0.4
-appVersion: "1.0.3"
+appVersion: "1.0.4"
 maintainers:
   - name: eumel8
     email: f.kloeker@telekom.de
