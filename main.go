@@ -51,8 +51,8 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	log.Infof("Prometheus response status: %s", resp.Status)
-	log.Debugf("Prometheus response body: %v", resp.Body)
+	log.Info("Prometheus response status: %s", resp.Status)
+	log.Debug("Prometheus response body: %v", resp.Body)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -84,8 +84,9 @@ func queryAlertmanager() (map[string]int, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	log.Infof("Alertmanager response status: %s", resp.Status)
-	log.Debugf("Alertmanager response body: %v", resp.Body)
+
+	log.Info("Alertmanager response status: %s", resp.Status)
+	log.Debug("Alertmanager response body: %v", resp.Body)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
