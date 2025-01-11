@@ -1,3 +1,4 @@
+{{ if not .Values.indexMap.enabled }}
 apiVersion: v1
 data:
   index.html: |
@@ -199,3 +200,4 @@ metadata:
   name: {{ include "prometheus-dashboard.fullname" . }}
   labels:
     {{- include "prometheus-dashboard.labels" . | nindent 4 }}
+{{- end }}
