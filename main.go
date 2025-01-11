@@ -19,27 +19,27 @@ const (
 
 // Prometheus response struct
 type PrometheusResponse struct {
-        Status string `json:"status"`
-        Data   struct {
-                ResultType string `json:"resultType"`
-                Result     []struct {
-                        Metric map[string]string `json:"metric"`
-                        Value  []interface{}     `json:"value"`
-                } `json:"result"`
-        } `json:"data"`
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		} `json:"result"`
+	} `json:"data"`
 }
 
 // Thanos response struct
 type ThanosResponse struct {
-        Status string `json:"status"`
-        Data   struct {
-                ResultType string `json:"resultType"`
-                Result     []struct {
-                        Metric map[string]string `json:"metric"`
-                        Value  []interface{}     `json:"value"`
-                } `json:"result"`
-                Analysis map[string]interface{} `json:"analysis,omitempty"`
-        } `json:"data"`
+	Status string `json:"status"`
+	Data   struct {
+		ResultType string `json:"resultType"`
+		Result     []struct {
+			Metric map[string]string `json:"metric"`
+			Value  []interface{}     `json:"value"`
+		} `json:"result"`
+		Analysis map[string]interface{} `json:"analysis,omitempty"`
+	} `json:"data"`
 }
 
 // Alertmanager response struct
@@ -50,8 +50,7 @@ type AlertmanagerAlert struct {
 // HTML content moved to external file
 
 // Query Prometheus
-func queryPrometheus(promQuery string) (PrometheusResponse, error) {
-
+func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) {
 	prometheusURL := "http://127.0.0.1:9090/api/v1/query"
 	if os.Getenv("PROMETHEUS_URL") != "" {
 		prometheusURL = os.Getenv("PROMETHEUS_URL")
@@ -61,7 +60,7 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
 
 	resp, err := http.Get(url)
 	if err != nil {
-		return PrometheusResponse{}, err
+		return nil, err
 	}
 	defer resp.Body.Close()
 
@@ -70,24 +69,32 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Error querying Prometheus: %v", err)
-		return PrometheusResponse{}, err
+		return nil, err
 	}
 
 	log.Debug("Prometheus response body: %s", body)
 
-	var prometheusResponse PrometheusResponse
-	err = json.Unmarshal(body, &prometheusResponse)
-	if err != nil {
-		log.Errorf("Error unmarshalling prometheusResponse: %v", err)
-		return PrometheusResponse{}, err
+	if thanosEnabled {
+		var thanosResponse ThanosResponse
+		err = json.Unmarshal(body, &thanosResponse)
+		if err != nil {
+			log.Errorf("Error unmarshalling thanosResponse: %v", err)
+			return nil, err
+		}
+		return thanosResponse, nil
+	} else {
+		var prometheusResponse PrometheusResponse
+		err = json.Unmarshal(body, &prometheusResponse)
+		if err != nil {
+			log.Errorf("Error unmarshalling prometheusResponse: %v", err)
+			return nil, err
+		}
+		return prometheusResponse, nil
 	}
-
-	return prometheusResponse, nil
 }
 
 // Query Alertmanager
 func queryAlertmanager() (map[string]int, error) {
-
 	alertmanagerURL := "http://127.0.0.1:9093/api/v2/alerts"
 	if os.Getenv("ALERTMANAGER_URL") != "" {
 		alertmanagerURL = os.Getenv("ALERTMANAGER_URL")
@@ -140,6 +147,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 
 func main() {
 	logLevel := flag.String("logLevel", "info", "loglevel of app, e.g info, debug, warn, error, fatal")
+	thanosEnabled := flag.Bool("thanos", false, "enable Thanos response struct")
 	flag.Parse()
 
 	// set log level
@@ -175,20 +183,19 @@ func main() {
 			return
 		}
 
-		prometheusResponse, err := queryPrometheus(query)
+		response, err := queryPrometheus(query, *thanosEnabled)
 		if err != nil {
 			log.Errorf("Error querying Prometheus: %v", err)
 			http.Error(w, "Failed to fetch data from Prometheus", http.StatusInternalServerError)
 			return
 		}
-		log.Debug("Prometheus handler response: %v", prometheusResponse)
+		log.Debug("Prometheus handler response: %v", response)
 
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(prometheusResponse)
+		json.NewEncoder(w).Encode(response)
 	})))
 
 	http.Handle("/api/alerts", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-
 		alerts, err := queryAlertmanager()
 		if err != nil {
 			log.Errorf("Error querying Alertmanager: %v", err)
