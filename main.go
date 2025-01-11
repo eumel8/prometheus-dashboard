@@ -51,14 +51,15 @@ func queryPrometheus(promQuery string) (PrometheusResponse, error) {
 	}
 	defer resp.Body.Close()
 
-	log.Info("Prometheus response status: %s", resp.Status)
-	log.Debug("Prometheus response body: %v", resp.Body)
+	log.Info("Prometheus response status: ", resp.Status)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Error querying Prometheus: %v", err)
 		return PrometheusResponse{}, err
 	}
+
+	log.Debug("Prometheus response body: %s", body)
 
 	var prometheusResponse PrometheusResponse
 	err = json.Unmarshal(body, &prometheusResponse)
@@ -85,14 +86,14 @@ func queryAlertmanager() (map[string]int, error) {
 	}
 	defer resp.Body.Close()
 
-	log.Info("Alertmanager response status: %s", resp.Status)
-	log.Debug("Alertmanager response body: %v", resp.Body)
+	log.Info("Alertmanager response status: ", resp.Status)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Errorf("Error reading body Alertmanager: %v", err)
 		return nil, err
 	}
+	log.Debug("Alertmanager response body: %v", resp.Body)
 
 	var alerts []AlertmanagerAlert
 	err = json.Unmarshal(body, &alerts)
