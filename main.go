@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"net/http"
 	"os"
@@ -93,7 +94,7 @@ func queryAlertmanager() (map[string]int, error) {
 		log.Errorf("Error reading body Alertmanager: %v", err)
 		return nil, err
 	}
-	log.Debug("Alertmanager response body: %v", resp.Body)
+	log.Debug("Alertmanager response body: %s", body)
 
 	var alerts []AlertmanagerAlert
 	err = json.Unmarshal(body, &alerts)
@@ -111,6 +112,17 @@ func queryAlertmanager() (map[string]int, error) {
 	}
 
 	return severityCount, nil
+}
+
+// LoggingMiddleware logs each incoming HTTP request
+func LoggingMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		startTime := time.Now()
+		log.Infof("Received %s request for %s from %s", r.Method, r.URL.Path, r.RemoteAddr)
+		next.ServeHTTP(w, r)
+		duration := time.Since(startTime)
+		log.Infof("Handled request for %s in %v", r.URL.Path, duration)
+	})
 }
 
 func main() {
@@ -137,12 +149,12 @@ func main() {
 
 	log.GetFormatter().(*log.TextFormatter).SetTemplate(logTemplate)
 
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Serve the HTML file
 		http.ServeFile(w, r, "index.html")
-	})
+	})))
 
-	http.HandleFunc("/api/query", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/api/query", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query().Get("query")
 		if query == "" {
 			log.Error("Query parameter is required")
@@ -160,9 +172,10 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(prometheusResponse)
-	})
+	})))
 
-	http.HandleFunc("/api/alerts", func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/api/alerts", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+
 		alerts, err := queryAlertmanager()
 		if err != nil {
 			log.Errorf("Error querying Alertmanager: %v", err)
@@ -173,7 +186,7 @@ func main() {
 
 		w.Header().Set("Content-Type", "application/json")
 		json.NewEncoder(w).Encode(alerts)
-	})
+	})))
 
 	log.Info("Server is running on http://0.0.0.0:8080")
 	log.Fatal(http.ListenAndServe(":8080", nil))
