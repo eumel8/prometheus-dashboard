@@ -2,8 +2,8 @@ apiVersion: v2
 name: prometheus-dashboard
 description: A Helm chart for tiny Prometheus Dashboard Service
 type: application
-version: 1.0.4
-appVersion: "1.0.4"
+version: 1.0.5
+appVersion: "1.0.5"
 maintainers:
   - name: eumel8
     email: f.kloeker@telekom.de
