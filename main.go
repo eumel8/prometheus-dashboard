@@ -148,6 +148,7 @@ func LoggingMiddleware(next http.Handler) http.Handler {
 func main() {
 	logLevel := flag.String("logLevel", "info", "loglevel of app, e.g info, debug, warn, error, fatal")
 	thanosEnabled := flag.Bool("thanos", false, "enable Thanos response struct")
+	indexTemplate := flag.String("indexTemplate", "index.html", "template to serve the dashboard, default: index.html")
 	flag.Parse()
 
 	// set log level
@@ -172,7 +173,7 @@ func main() {
 
 	http.Handle("/", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Serve the HTML file
-		http.ServeFile(w, r, "index.html")
+		http.ServeFile(w, r, *indexTemplate)
 	})))
 
 	http.Handle("/api/query", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
