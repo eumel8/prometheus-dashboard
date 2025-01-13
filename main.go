@@ -171,12 +171,12 @@ func main() {
 
 	log.GetFormatter().(*log.TextFormatter).SetTemplate(logTemplate)
 
-	http.Handle("/", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/dashboard", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Serve the HTML file
 		http.ServeFile(w, r, *indexTemplate)
 	})))
 
-	http.Handle("/api/query", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/dashboard/api/query", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		query := r.URL.Query().Get("query")
 		if query == "" {
 			log.Error("Query parameter is required")
@@ -196,7 +196,7 @@ func main() {
 		json.NewEncoder(w).Encode(response)
 	})))
 
-	http.Handle("/api/alerts", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	http.Handle("/dashboard/api/alerts", LoggingMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		alerts, err := queryAlertmanager()
 		if err != nil {
 			log.Errorf("Error querying Alertmanager: %v", err)
