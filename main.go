@@ -56,6 +56,8 @@ func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) 
 		prometheusURL = os.Getenv("PROMETHEUS_URL")
 	}
 
+	log.Debug("Prometheus query: %s", promQuery)
+
 	url := fmt.Sprintf("%s?query=%s", prometheusURL, promQuery)
 
 	resp, err := http.Get(url)
@@ -65,6 +67,7 @@ func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) 
 	defer resp.Body.Close()
 
 	log.Info("Prometheus response status: ", resp.Status)
+	log.Debug("Prometheus response body: ", resp.Body)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
