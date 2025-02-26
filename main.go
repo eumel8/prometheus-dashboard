@@ -10,6 +10,7 @@ import (
 
 	"net/http"
 	"os"
+	"strings"
 
 	log "github.com/gookit/slog"
 )
@@ -59,9 +60,11 @@ func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) 
 
 	log.Debug("Prometheus query: ", promQuery)
 	promQueryEscape := url.QueryEscape(promQuery)
+	// Replace "+" with "%20" (because Prometheus expects "%20" for spaces)
+	promQueryEscape = strings.ReplaceAll(promQueryEscape, "+", "%20")
 	log.Debug("Prometheus query escape: ", promQueryEscape)
 
-	url := fmt.Sprintf("%s?query=%s", prometheusURL, url.QueryEscape(promQueryEscape))
+	url := fmt.Sprintf("%s?query=%s", prometheusURL, promQueryEscape)
 
 	resp, err := http.Get(url)
 	if err != nil {
