@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
+	"net/url"
 	"time"
 
 	"net/http"
@@ -56,9 +57,11 @@ func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) 
 		prometheusURL = os.Getenv("PROMETHEUS_URL")
 	}
 
-	log.Debug("Prometheus query: %s", promQuery)
+	log.Debug("Prometheus query: ", promQuery)
+	promQueryEscape := url.QueryEscape(promQuery)
+	log.Debug("Prometheus query escape: ", promQueryEscape)
 
-	url := fmt.Sprintf("%s?query=%s", prometheusURL, promQuery)
+	url := fmt.Sprintf("%s?query=%s", prometheusURL, url.QueryEscape(promQueryEscape))
 
 	resp, err := http.Get(url)
 	if err != nil {
@@ -67,7 +70,6 @@ func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) 
 	defer resp.Body.Close()
 
 	log.Info("Prometheus response status: ", resp.Status)
-	log.Debug("Prometheus response body: ", resp.Body)
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -75,7 +77,7 @@ func queryPrometheus(promQuery string, thanosEnabled bool) (interface{}, error) 
 		return nil, err
 	}
 
-	log.Debug("Prometheus response body: %s", body)
+	log.Debug("Prometheus response body: ", body)
 
 	if thanosEnabled {
 		var thanosResponse ThanosResponse
